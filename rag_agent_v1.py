@@ -145,10 +145,6 @@ def main():
             # Display the generated response
             st.write(response)
 
-    # Exit button (optional)
-    if st.button('Exit'):
-        st.write("Exiting the application...")
-        os._exit(0)
 
 
 
