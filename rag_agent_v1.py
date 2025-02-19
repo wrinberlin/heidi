@@ -87,7 +87,7 @@ def load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH):
                                       allow_dangerous_deserialization=True)
     
     st.session_state["knowledge_base"] = knowledge_base
-    st.success("Heidi ist bereit!")
+    st.success("H[ai]di ist bereit!")
 
 def generate_response(user_question):
     """Retrieves relevant context and generates an AI response."""
@@ -109,7 +109,7 @@ def generate_response(user_question):
     human_message = HumanMessagePromptTemplate.from_template("Kontext:\n{context}\n\nFrage: {question}")
     chat_prompt = ChatPromptTemplate.from_messages([system_message, human_message])
     
-    llm = ChatOpenAI(model="gpt-4", temperature=0.0)
+    llm = ChatOpenAI(model="gpt-4", temperature=0.0, openai_api_key=OPENAI_API_KEY)
     qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
     return qa_chain.run(context=context.strip(), question=user_question)
 
@@ -129,7 +129,7 @@ def main():
 
     user_question = st.text_area("Frage eingeben:")
     if st.button("Antwort generieren") and user_question:
-        with st.spinner("Heidi überlegt..."):
+        with st.spinner("H[ai]di überlegt..."):
             # Show the animated GIF while waiting for the response
             image_placeholder.image(GIF_PATH, caption="H[ai]di überlegt...", use_container_width=False)
 
