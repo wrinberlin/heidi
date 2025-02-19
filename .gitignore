@@ -8,7 +8,8 @@ __pycache__/
 # Ignore log folder
 logs/
 
-rag_agent_v1a
+rag_agent_v1a.py
+blob_storage_test.py
 
 # Ignore virtual environment folders
 venv/
