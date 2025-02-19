@@ -16,7 +16,7 @@ run with: streamlit run rag_agent_v1.py
 import streamlit as st
 
 # Unkomment when pushing... 
-openai_key = st.secrets["openai"]["api_key"]
+OPENAI_API_KEY = st.secrets["openai"]["api_key"]
 
 import os
 from pathlib import Path
@@ -81,7 +81,7 @@ def load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH):
     Extracts and splits text from a PDF into embeddings, stores in session state."""
     
     # Initialize the same embedding model used for storage
-    embeddings = OpenAIEmbeddings(openai_api_key=openai_key)
+    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     
     knowledge_base = FAISS.load_local(FAISS_STORAGE_PATH, embeddings, 
                                       allow_dangerous_deserialization=True)
