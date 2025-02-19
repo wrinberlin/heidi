@@ -5,7 +5,7 @@ Created on Fri Feb 14 16:57:32 2025
 @author: Wolfgang Reuter
 
 
-run with: streamlit run C:\heidi\rag_agent_v1.py 
+run with: streamlit run rag_agent_v1.py 
 
 """
 
@@ -13,9 +13,15 @@ run with: streamlit run C:\heidi\rag_agent_v1.py
 # Imports
 # =============================================================================
 
+import subprocess
+
+# Set Git config for pack.threads to 1
+subprocess.run('git config --global pack.threads "1"', shell=True, check=True)
+
+import streamlit as st
+
 import os
 from pathlib import Path
-import streamlit as st
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain.chains import LLMChain
@@ -139,7 +145,7 @@ def main():
             response = generate_response(user_question)
 
             # Show the static image again after the animation
-            image_placeholder.image(IMAGE_PATH, caption="Heidi", use_container_width=False)
+            image_placeholder.image(IMAGE_PATH, caption="H[ai]di", use_container_width=False)
 
             # Display the generated response
             st.write(response)
