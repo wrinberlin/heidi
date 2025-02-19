@@ -13,13 +13,9 @@ run with: streamlit run rag_agent_v1.py
 # Imports
 # =============================================================================
 
-import subprocess
-
-# Set Git config for pack.threads to 1
-subprocess.run('git config --global pack.threads "1"', shell=True, check=True)
-
 import streamlit as st
 
+# Unkomment when pushing... 
 openai_key = st.secrets["openai"]["api_key"]
 
 import os
@@ -85,13 +81,10 @@ def load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH):
     Extracts and splits text from a PDF into embeddings, stores in session state."""
     
     # Initialize the same embedding model used for storage
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(openai_api_key=openai_key)
     
     knowledge_base = FAISS.load_local(FAISS_STORAGE_PATH, embeddings, 
                                       allow_dangerous_deserialization=True)
-
-    with open(METADATA_STORAGE_PATH, "r") as f: 
-        metadata_dict = json.load(f)
     
     st.session_state["knowledge_base"] = knowledge_base
     st.success("Heidi ist bereit!")

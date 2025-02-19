@@ -23,7 +23,6 @@ from langchain.chains import LLMChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
-from collections import Counter
 import tiktoken
 import json
 from datetime import datetime
@@ -39,11 +38,20 @@ project_root = Path(os.getcwd())
 # Define constants (need to correspond to stored FAISS vectorbases)
 CHUNK_SIZE = 800
 OVERLAP = 200
+
+CHUNK_SIZE_2 = 500
+OVERLAP_2 = 100
+NUM_CHUNKS = 10
+
 MAX_TOKENS = 4096
 RESPONSE_BUFFER = 500
 
-FAISS_STORAGE_PATH = project_root / "data" / "faiss_index_800_200"
+FAISS_STORAGE_PATH = project_root / "data" / f"faiss_index_{CHUNK_SIZE}_{OVERLAP}"
 METADATA_STORAGE_PATH = project_root / "data" / f"metadata_{CHUNK_SIZE}_{OVERLAP}.json"
+
+FAISS_STORAGE_PATH_2 = project_root / "data" / f"faiss_index_{CHUNK_SIZE_2}_{OVERLAP_2}"
+METADATA_STORAGE_PATH_2 = project_root / "data" / f"metadata_{CHUNK_SIZE_2}_{OVERLAP_2}.json"
+
 IMAGE_PATH = project_root / "data" / "heidi_1.png"
 GIF_PATH = project_root / "data" / "new_animation.gif"
 LOG_FILE_PATH =  project_root / "logs" / "interaction_log.txt"
@@ -74,9 +82,7 @@ system_prompt_2 = """
 Du bist ein Concierge in einem Hotel, der Gästen Auskunft über Restaurants 
 in der Umgebung gibt. Du kennst die Gastronomie in der Gegend wie Deine 
 Westentasche - und Du bist sehr freundlich und versiert darin, 
-Deinen Kunden genau das Richtige zu empfehlen. Du erhälst web-seiten urls, 
-und auf der Basis der Informationen darin generierst Du Deine Antworten. 
-Alle webseiten-urls sind von Restaurants oder Hotels in der Gegend. 
+Deinen Kunden genau das Richtige zu empfehlen. 
 
 Wichtige Regeln:
 - Deine Empfehlung beginnt mit einer einzigen freundlichen Begrüßung wie:
@@ -87,20 +93,12 @@ Wichtige Regeln:
   Du empfiehlst explizit"".
 - Du gibst Deine Empfehlung in einem Fließtext mit vollständigen Sätzen.  
   Das aus Deiner Sicht beste Restaurant kommt zuerst.
-- Du **vermeidest die Erwähnung von Webseiten**, also Formulierungen wie etwa: 
-    "Basierend auf den Informationen, die ich aus den bereitgestellten Links 
-     entnehmen konnte" 
-  lässt Du weg. 
 - Falls es keine passende Empfehlung gibt, sag dem Gast das **direkt**, 
   **ohne eine Begrüßung erneut zu wiederholen**.
 - Deine Antworten beziehen sich **ausschließlich** auf Restaurants, 
   von denen Dir Dokumente oder Speisekarten vorliegen.
 """
 
-def count_tokens(text):
-    """Estimate token count using TikToken (for OpenAI models)."""
-    encoding = tiktoken.encoding_for_model("gpt-4")
-    return len(encoding.encode(text))
 
 def load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH):
     """Loads FAISS vector database and metadata dictionary."""
@@ -113,7 +111,20 @@ def load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH):
     
     st.session_state["knowledge_base"] = knowledge_base
     st.session_state["metadata_dict"] = metadata_dict
-    st.success("H[ai]di ist bereit...")
+    st.success("H[ai]di 1 ist bereit...")
+    
+def load_data_2(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH):
+    """Loads FAISS vector database and metadata dictionary."""
+    embeddings = OpenAIEmbeddings()
+    knowledge_base_2 = FAISS.load_local(FAISS_STORAGE_PATH, embeddings, 
+                                        allow_dangerous_deserialization=True)
+    
+    with open(METADATA_STORAGE_PATH_2, "r") as f:
+        metadata_dict_2 = json.load(f)
+    
+    st.session_state["knowledge_base_2"] = knowledge_base_2
+    st.session_state["metadata_dict_2"] = metadata_dict_2
+    st.success("H[ai]di 2 ist bereit...")
 
 def generate_response(user_question):
     """Agent 1: Retrieves context from FAISS and generates a response."""
@@ -121,7 +132,7 @@ def generate_response(user_question):
     if not knowledge_base:
         return "Keine Daten. Bitte lade zuerst eine FAISS Vektorbasis"
     
-    docs = knowledge_base.similarity_search(user_question)
+    docs = knowledge_base.similarity_search(user_question, k=NUM_CHUNKS)
     context = "\n\n".join([doc.page_content for doc in docs])
     
     system_message = SystemMessagePromptTemplate.from_template(system_prompt)
@@ -133,128 +144,29 @@ def generate_response(user_question):
     
     return qa_chain.run(context=context.strip(), question=user_question)
 
-# def generate_response_urls(user_question):
-#     """Agent 2: Uses only the URLs from metadata to generate an answer."""
-#     metadata_dict = st.session_state.get("metadata_dict", {})
+def generate_response_2(user_question):
+    """Agent 1: Retrieves context from FAISS and generates a response."""
+    knowledge_base_2 = st.session_state.get("knowledge_base_2", None)
+    if not knowledge_base_2:
+        return "Keine Daten. Bitte lade zuerst eine FAISS Vektorbasis"
     
-#     # TODO: Add as variable
-#     max_urls = 5  # limit to top 5 URLs
-
-#     # Collect the URLs from the metadata
-#     urls = list(set([data["link"] for data in metadata_dict.values() if "link" in data]))
+    docs = knowledge_base_2.similarity_search(user_question, k=NUM_CHUNKS)
+    context = "\n\n".join([doc.page_content for doc in docs])
     
-#     urls = urls[:max_urls]
-    
-#     # Prepare the URL context as a formatted string
-#     url_context = "\n".join(urls) if urls else "Keine Links verfügbar."
-    
-#     for url in urls: 
-#         st.write(url)
-    
-#     url_message_template = PromptTemplate(
-#         input_variables=["url_context", "question"],
-#         template="""
-#         Bitte sehen Sie sich die folgenden Links an, um relevante Informationen zu erhalten:
-#         {url_context}
-        
-#         Basierend auf diesen Links, beantworten Sie bitte die folgende Frage: {question}
-#         """
-#     )
-    
-#     # Format the human message using the URL context string and user question
-#     human_message = url_message_template.format(
-#         url_context=url_context,  # use the formatted string, not a list
-#         question=user_question  # the question asked
-#     )
-
-#     # System message and chat prompt
-#     system_message = SystemMessagePromptTemplate.from_template(system_prompt_2)
-#     chat_prompt = ChatPromptTemplate.from_messages([system_message, human_message])
-
-#     # Set up the LLM chain
-#     llm = ChatOpenAI(model="gpt-4", temperature=0.0)
-#     qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
-
-#     # Run the chain and return the result
-#     return qa_chain.run(url_context=url_context.strip(), question=user_question)
-
-
-def generate_response_urls(user_question, faiss_index, embeddings, token_limit=4000, max_urls=5):
-    """Retrieves relevant URLs based on FAISS similarity search and selects those fitting within a token limit."""
-    metadata_dict = st.session_state.get("metadata_dict", {})
-    
-    # Step 1: Retrieve relevant chunks from FAISS
-    relevant_docs = faiss_index.similarity_search(user_question, k=20)  # Get top 20 relevant chunks
-    
-    # Step 2: Extract website links and sort by relevance
-    url_scores = {}
-    for doc in relevant_docs:
-        metadata = metadata_dict.get(doc.metadata.get("id"), {})
-        url = metadata.get("link")
-        if url:
-            url_scores[url] = url_scores.get(url, 0) + doc.score  # Aggregate scores
-    
-    # Step 3: Sort URLs by relevance (highest FAISS similarity first)
-    sorted_urls = sorted(url_scores.keys(), key=lambda url: url_scores[url], reverse=True)
-    
-    # Step 4: Select URLs while respecting token limit
-    enc = tiktoken.encoding_for_model("gpt-4")  # Use OpenAI's tokenizer
-    selected_urls = []
-    total_tokens = 0
-    
-    for url in sorted_urls:
-        url_tokens = len(enc.encode(url))
-        if total_tokens + url_tokens > token_limit:
-            break
-        selected_urls.append(url)
-        total_tokens += url_tokens
-    
-    selected_urls = selected_urls[:max_urls]  # Ensure we don't exceed max URLs
-    
-    url_context = "\n".join(selected_urls) if selected_urls else "Keine Links verfügbar."
-    
-    for url in selected_urls:
-        st.write(url)
-    
-    url_message_template = PromptTemplate(
-        input_variables=["url_context", "question"],
-        template="""
-        Bitte sehen Sie sich die folgenden Links an, um relevante Informationen zu erhalten:
-        {url_context}
-        
-        Basierend auf diesen Links, beantworten Sie bitte die folgende Frage: {question}
-        """
-    )
-    
-    # Step 5: Format prompt and run LLM chain
-    system_message = SystemMessagePromptTemplate.from_template(system_prompt_2)
-    chat_prompt = ChatPromptTemplate.from_messages([system_message, url_message_template])
+    system_message = SystemMessagePromptTemplate.from_template(system_prompt)
+    human_message = HumanMessagePromptTemplate.from_template("Kontext:\n{context}\n\nFrage: {question}")
+    chat_prompt = ChatPromptTemplate.from_messages([system_message, human_message])
     
     llm = ChatOpenAI(model="gpt-4", temperature=0.0)
     qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
     
-    return qa_chain.run(url_context=url_context.strip(), question=user_question)
-
-
-
-# Ensure log file exists, create if not
-if not os.path.exists(LOG_FILE_PATH):
-    with open(LOG_FILE_PATH, "w") as log_file:
-        log_file.write("Log file created on " + str(datetime.now()) + "\n")
+    return qa_chain.run(context=context.strip(), question=user_question)
 
 
 # Ensure log file exists, create if not
 if not os.path.exists(LOG_FILE_PATH):
     with open(LOG_FILE_PATH, "w") as log_file:
         log_file.write("Log file created on " + str(datetime.now()) + "\n")
-
-
-
-# Ensure log file exists, create if not
-if not os.path.exists(LOG_FILE_PATH):
-    with open(LOG_FILE_PATH, "w") as log_file:
-        log_file.write("Log file created on " + str(datetime.now()) + "\n")
-
 
 def log_to_file(content):
     """Helper function to log text to a file immediately."""
@@ -278,6 +190,9 @@ def main():
         
     if "knowledge_base" not in st.session_state:
         load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH)
+        
+    if "knowledge_base_2" not in st.session_state:
+        load_data_2(FAISS_STORAGE_PATH_2, METADATA_STORAGE_PATH_2)
 
     # Initialize session states
     if "last_logged_question" not in st.session_state:
@@ -301,7 +216,7 @@ def main():
             time.sleep(3)  # Adjust this for your actual response time
             
             response_1 = generate_response(user_question)
-            response_2 = generate_response_urls(user_question)
+            response_2 = generate_response_2(user_question)
             
             # Show the static image again after the animation
             image_placeholder.image(IMAGE_PATH, caption="H[ai]di", use_container_width=False)
@@ -318,7 +233,7 @@ def main():
         col1, col2 = st.columns(2)
 
         with col1:
-            st.subheader("Antwort von Agent 1 (FAISS)")
+            st.subheader("Antwort von Agent 1\n(FAISS, 800, 200)")
             st.write(st.session_state["response_1"])
             if st.button("Ich bevorzuge diese Antwort", key="response_1_preference_button"):
                 st.session_state["preferred_response"] = "Response 1"
@@ -326,7 +241,7 @@ def main():
                 st.success("Präferenz gespeichert: Antwort 1")
 
         with col2:
-            st.subheader("Antwort von Agent 2 (Web-URLs)")
+            st.subheader("Antwort von Agent 2\n(FAISS, 500, 100)")
             st.write(st.session_state["response_2"])
             if st.button("Ich bevorzuge diese Antwort", key="response_2_preference_button"):
                 st.session_state["preferred_response"] = "Response 2"
