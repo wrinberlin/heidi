@@ -109,7 +109,7 @@ def generate_response(user_question):
     human_message = HumanMessagePromptTemplate.from_template("Kontext:\n{context}\n\nFrage: {question}")
     chat_prompt = ChatPromptTemplate.from_messages([system_message, human_message])
     
-    llm = ChatOpenAI(model="gpt-4", temperature=0.0)
+    llm = ChatOpenAI(model="gpt-4", temperature=0.0, openai_api_key=OPENAI_API_KEY)
     qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
     return qa_chain.run(context=context.strip(), question=user_question)
 
