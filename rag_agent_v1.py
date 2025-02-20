@@ -230,8 +230,23 @@ def get_user_question(api_key):
     (user_question, input_mode), where user_question is the question obtained
     from text input or voice transcription.
     """
-    input_mode = st.radio("Eingabemodus auswählen:", options=["Text", "Sprache"], index=0, horizontal=True)
-    output_mode = st.radio("Ausgabemodus auswählen:", options=["Text", "Sprache"], index=0, horizontal=True)
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        input_mode = st.radio(
+            "Eingabemodus auswählen:",
+            options=["Text", "Sprache"],
+            index=0,
+            horizontal=True
+        )
+    
+    with col2:
+        output_mode = st.radio(
+            "Ausgabemodus auswählen:",
+            options=["Text", "Sprache"],
+            index=0,
+            horizontal=True
+        )
 
     if input_mode == "Text":
         user_question_text = st.text_area("Frage eingeben:")
