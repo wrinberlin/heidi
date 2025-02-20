@@ -308,7 +308,7 @@ def main():
     # Always display the response if it's stored in session state.
     if "response" in st.session_state:
         if output_mode == "Text":
-        st.write(st.session_state["response"])
+            st.write(st.session_state["response"])
         elif output_mode == "Sprache":
             speak_text(st.session_state["response"])
 
