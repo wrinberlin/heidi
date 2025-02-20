@@ -230,8 +230,7 @@ def get_user_question(api_key):
     (user_question, input_mode), where user_question is the question obtained
     from text input or voice transcription.
     """
-    col1, col2 = st.columns(2)
-    
+    col1, col2 = st.columns([1, 1], gap="small")
     with col1:
         input_mode = st.radio(
             "Eingabemodus auswählen:",
@@ -239,7 +238,6 @@ def get_user_question(api_key):
             index=0,
             horizontal=True
         )
-    
     with col2:
         output_mode = st.radio(
             "Ausgabemodus auswählen:",
