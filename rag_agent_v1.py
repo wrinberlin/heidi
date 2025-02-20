@@ -26,7 +26,6 @@ from langchain.chains import LLMChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import tiktoken
-import json
 import time
 
 # Get the current working directory (will be the project root in Streamlit Cloud)
@@ -46,7 +45,7 @@ FAISS_STORAGE_PATH = r"C:\Agents\src\H[ai]di\faiss_index_800_200"
 METADATA_STORAGE_PATH = r"C:\Agents\src\H[ai]di\metadata_" + str(CHUNK_SIZE) + "_" + str(OVERLAP) + ".json"
 FAISS_STORAGE_PATH_2 = r"C:\Agents\src\H[ai]di\faiss_index_2_800_200"
 METADATA_STORAGE_PATH_2 = r"C:\Agents\src\H[ai]di\metadata_2_" + str(CHUNK_SIZE) + "_" + str(OVERLAP) + ".json"
-IMAGE_PATH = r"C:\Agents\src\H[ai]di\illus\heidi_4.png"
+IMAGE_PATH = r"C:\Agents\src\H[ai]di\illus\heidi_1.png"
 GIF_PATH = r"C:\Agents\src\H[ai]di\data\new_animation.gif"
 
 app_info = """
