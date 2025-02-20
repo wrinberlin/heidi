@@ -41,10 +41,10 @@ OVERLAP = 200
 MAX_TOKENS = 4096
 RESPONSE_BUFFER = 500
 
-FAISS_STORAGE_PATH = r"C:\Agents\src\H[ai]di\faiss_index_800_200"
-FAISS_STORAGE_PATH_2 = r"C:\Agents\src\H[ai]di\faiss_index_2_800_200"
-IMAGE_PATH = r"C:\Agents\src\H[ai]di\illus\heidi_1.png"
-GIF_PATH = r"C:\Agents\src\H[ai]di\data\new_animation.gif"
+FAISS_STORAGE_PATH = project_root / "data" / "faiss_index_800_200"
+FAISS_STORAGE_PATH_2 = project_root / "data" / "faiss_index_2_800_200"
+IMAGE_PATH = project_root / "data" / "heidi_1.png"
+GIF_PATH = project_root / "data" / "new_animation.gif"
 
 app_info = """
 Dies ist eine Demo App, die noch in der Entwicklung ist.
