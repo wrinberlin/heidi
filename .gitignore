@@ -11,5 +11,7 @@ logs/
 rag_agent_v1a.py
 blob_storage_test.py
 
+data/new_animation_old*
+
 # Ignore virtual environment folders
 venv/
