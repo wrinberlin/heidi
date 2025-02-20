@@ -295,10 +295,13 @@ def main():
         system_prompt = system_prompt_snow_weather
     
     if topic == "restaurant" and "knowledge_base_restaurant" not in st.session_state:
+        st.write(topic)
         load_data(FAISS_STORAGE_PATH, knowledge_base_string)
     elif topic == "activity" and "knowledge_base_activity" not in st.session_state:
+        st.write(topic)
         load_data(FAISS_STORAGE_PATH_2,  knowledge_base_string)
     elif topic == "weather" and "knowledge_base_snow_weather" not in st.session_state:
+        st.write(topic)
         load_data(FAISS_STORAGE_PATH_3, knowledge_base_string)
     
     if st.button("Antwort generieren") and user_question:
