@@ -14,19 +14,25 @@ run with: streamlit run rag_agent_v1.py
 # =============================================================================
 
 import streamlit as st
-
-# Unkomment when pushing... 
-OPENAI_API_KEY = st.secrets["openai"]["api_key"]
-
 import os
+import tiktoken
+import time
 from pathlib import Path
+
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain.chains import LLMChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-import tiktoken
-import time
+
+# Import voice functions from voice_utils.py
+from voice_utils import record_and_transcribe, speak_text
+
+# Create page settings
+st.set_page_config(page_title="Ask H[ai]di")
+
+# Unkomment when pushing... 
+OPENAI_API_KEY = st.secrets["openai"]["api_key"]
 
 # Get the current working directory (will be the project root in Streamlit Cloud)
 project_root = Path(os.getcwd())
@@ -133,6 +139,34 @@ Wichtige Regeln:
 """
 
 
+def login_page():
+    # Initialize logged_in state and error message if not set.
+    if "logged_in" not in st.session_state:
+        st.session_state["logged_in"] = False
+    if "login_error" not in st.session_state:
+        st.session_state["login_error"] = ""
+
+    # Callback function that is triggered when the Login button is clicked.
+    def on_login():
+        password = st.session_state.get("password_input", "")
+        if password == st.secrets["password"]["password"]:
+            st.session_state["logged_in"] = True
+            st.session_state["login_error"] = ""
+        else:
+            st.session_state["logged_in"] = False
+            st.session_state["login_error"] = "Incorrect password."
+
+    # If not logged in, display the login UI.
+    if not st.session_state["logged_in"]:
+        st.title("Login")
+        st.text_input("Password", type="password", key="password_input")
+        st.button("Login", on_click=on_login)
+        if st.session_state["login_error"]:
+            st.error(st.session_state["login_error"])
+        if not st.session_state["logged_in"]:
+            st.stop()
+            
+
 # Function to calculate token length
 def calculate_token_length(text, model_name="gpt-4"):
     encoding = tiktoken.encoding_for_model(model_name)
@@ -189,14 +223,44 @@ def generate_response(user_question, system_prompt, knowledge_base_string):
     qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
     return qa_chain.run(context=context.strip(), question=user_question)
 
+
+def get_user_question(api_key):
+    """
+    Displays a radio button to select input mode and returns a tuple:
+    (user_question, input_mode), where user_question is the question obtained
+    from text input or voice transcription.
+    """
+    input_mode = st.radio("Eingabemodus auswählen:", options=["Text", "Sprache"], index=0, horizontal=True)
+    
+    if input_mode == "Text":
+        user_question_text = st.text_area("Frage eingeben:")
+        user_question = user_question_text
+    elif input_mode == "Sprache":
+        transcript = record_and_transcribe(api_key)
+        if transcript:
+            st.session_state["user_question"] = transcript
+            st.success("Transkription: " + transcript)
+            user_question = transcript
+        else:
+            user_question = ""
+            
+    # Clear previous response if a new question is entered.
+    if "last_question" not in st.session_state or st.session_state["last_question"] != user_question:
+        st.session_state["last_question"] = user_question
+        if "response" in st.session_state:
+            del st.session_state["response"]
+    
+    return user_question, input_mode
+
+
 def main():
-    st.set_page_config(page_title="Ask H[ai]di")
+    login_page()
     # Create an expander for the info box
     with st.expander("Infos zu dieser App"):
         st.write(app_info)
     st.header("Ask H[ai]di")
         
-    user_question = st.text_area("Frage eingeben:")
+    user_question, input_mode = get_user_question(OPENAI_API_KEY)
     
     # Display the static image (always visible initially)
     image_placeholder = st.empty()  # Single placeholder for both static image and animation
@@ -223,7 +287,6 @@ def main():
     elif topic == "weather" and "knowledge_base_snow_weather" not in st.session_state:
         load_data(FAISS_STORAGE_PATH_3, knowledge_base_string)
     
-    
     if st.button("Antwort generieren") and user_question:
         with st.spinner("H[ai]di überlegt..."):
             # Show the animated GIF while waiting for the response
@@ -238,10 +301,15 @@ def main():
             # Show the static image again after the animation
             image_placeholder.image(IMAGE_PATH, caption="H[ai]di", use_container_width=False)
 
-            # Display the generated response
-            st.write(response)
-
-
+           # Save the response to session state so it persists outside the block
+            st.session_state["response"] = response
+            
+    # Always display the response if it's stored in session state.
+    if "response" in st.session_state:
+        st.write(st.session_state["response"])
+        # If input mode was voice ("Sprache"), automatically play back the answer.
+        if input_mode == "Sprache":
+            speak_text(st.session_state["response"])
 
 
 if __name__ == "__main__":
