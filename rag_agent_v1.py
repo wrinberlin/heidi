@@ -231,7 +231,8 @@ def get_user_question(api_key):
     from text input or voice transcription.
     """
     input_mode = st.radio("Eingabemodus auswählen:", options=["Text", "Sprache"], index=0, horizontal=True)
-    
+    output_mode = st.radio("Ausgabemodus auswählen:", options=["Text", "Sprache"], index=0, horizontal=True)
+
     if input_mode == "Text":
         user_question_text = st.text_area("Frage eingeben:")
         user_question = user_question_text
@@ -250,7 +251,7 @@ def get_user_question(api_key):
         if "response" in st.session_state:
             del st.session_state["response"]
     
-    return user_question, input_mode
+    return user_question, input_mode, output_mode
 
 
 def main():
@@ -260,7 +261,7 @@ def main():
         st.write(app_info)
     st.header("Ask H[ai]di")
         
-    user_question, input_mode = get_user_question(OPENAI_API_KEY)
+    user_question, input_mode, output_mode = get_user_question(OPENAI_API_KEY)
     
     # Display the static image (always visible initially)
     image_placeholder = st.empty()  # Single placeholder for both static image and animation
@@ -306,9 +307,9 @@ def main():
             
     # Always display the response if it's stored in session state.
     if "response" in st.session_state:
+        if output_mode == "Text":
         st.write(st.session_state["response"])
-        # If input mode was voice ("Sprache"), automatically play back the answer.
-        if input_mode == "Sprache":
+        elif output_mode == "Sprache":
             speak_text(st.session_state["response"])
 
 
