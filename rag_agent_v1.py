@@ -42,9 +42,7 @@ MAX_TOKENS = 4096
 RESPONSE_BUFFER = 500
 
 FAISS_STORAGE_PATH = r"C:\Agents\src\H[ai]di\faiss_index_800_200"
-METADATA_STORAGE_PATH = r"C:\Agents\src\H[ai]di\metadata_" + str(CHUNK_SIZE) + "_" + str(OVERLAP) + ".json"
 FAISS_STORAGE_PATH_2 = r"C:\Agents\src\H[ai]di\faiss_index_2_800_200"
-METADATA_STORAGE_PATH_2 = r"C:\Agents\src\H[ai]di\metadata_2_" + str(CHUNK_SIZE) + "_" + str(OVERLAP) + ".json"
 IMAGE_PATH = r"C:\Agents\src\H[ai]di\illus\heidi_1.png"
 GIF_PATH = r"C:\Agents\src\H[ai]di\data\new_animation.gif"
 
@@ -121,7 +119,7 @@ def calculate_token_length(text, model_name="gpt-4"):
     encoding = tiktoken.encoding_for_model(model_name)
     return len(encoding.encode(text))
 
-def load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH, knowledge_base_string):
+def load_data(FAISS_STORAGE_PATH, knowledge_base_string):
     """
     TODO: Rewrite comments!!!
     
@@ -197,9 +195,9 @@ def main():
         system_prompt = system_prompt_activity
     
     if topic == "restaurant" and "knowledge_base_restaurant" not in st.session_state:
-        load_data(FAISS_STORAGE_PATH, METADATA_STORAGE_PATH, knowledge_base_string)
+        load_data(FAISS_STORAGE_PATH, knowledge_base_string)
     elif topic == "activity" and "knowledge_base_activity" not in st.session_state:
-        load_data(FAISS_STORAGE_PATH_2, METADATA_STORAGE_PATH_2, knowledge_base_string)
+        load_data(FAISS_STORAGE_PATH_2,  knowledge_base_string)
     
     
     if st.button("Antwort generieren") and user_question:
