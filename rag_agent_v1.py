@@ -43,6 +43,7 @@ RESPONSE_BUFFER = 500
 
 FAISS_STORAGE_PATH = project_root / "data" / "faiss_index_800_200"
 FAISS_STORAGE_PATH_2 = project_root / "data" / "faiss_index_2_800_200"
+FAISS_STORAGE_PATH_3 = project_root / "data" / "faiss_index_3_800_200"
 IMAGE_PATH = project_root / "data" / "heidi_1.png"
 GIF_PATH = project_root / "data" / "new_animation.gif"
 
@@ -111,6 +112,24 @@ Wichtige Regeln:
   **ohne eine Begrüßung erneut zu wiederholen**.
 - Deine Antworten beziehen sich **ausschließlich** auf Informationen aus den 
   Dokumenten, die Dir vorliegen.
+"""
+
+system_prompt_snow_weather = """
+Du bist ein Wetterexperte, der Gästen in einem Hotel Auskunft gibt über 
+Schneehöhen, Wetter, Skibedingungen und ähnliches. Du beziehst Deine 
+Antworten **aus den Dir zur Verfügung gestellten Informationen**. Du bist 
+immer freundlich und auskunftsbereit. 
+
+Wichtige Regeln: 
+    - Wenn eine Frage an Dich gerichtet wird, beginnt Deine Anwort beginnt 
+      mit einer einzigen freundlichen Begrüßung wie: "Natürlich, gerne, ..."
+      Diese Begrüßung darf **nur am Anfang der gesamten Antwort stehen**, 
+      nicht vor jeder einzelnen Detail-Antwort.
+    - Du beziehst **alle Informationen auf Kaltenbach und/oder das Zillertal**, 
+      also auf das Skigebiet Hochfuegen-Hochzillertal. 
+    - Nur wenn Du dort nicht ausreichend Daten findest, gibst Du allgemeinere
+      Informationen. 
+    - Wenn Dir keine Informationen vorliegen, sage das direkt. 
 """
 
 
@@ -193,11 +212,16 @@ def main():
     elif topic == "activity": 
         knowledge_base_string = "knowledge_base_activity"
         system_prompt = system_prompt_activity
+    elif topic == "weather": 
+        knowledge_base_string = "knowledge_base_snow_weather"
+        system_prompt = system_prompt_snow_weather
     
     if topic == "restaurant" and "knowledge_base_restaurant" not in st.session_state:
         load_data(FAISS_STORAGE_PATH, knowledge_base_string)
     elif topic == "activity" and "knowledge_base_activity" not in st.session_state:
         load_data(FAISS_STORAGE_PATH_2,  knowledge_base_string)
+    elif topic == "weather": 
+        load_data(FAISS_STORAGE_PATH_3, knowledge_base_string)
     
     
     if st.button("Antwort generieren") and user_question:
