@@ -51,7 +51,7 @@ app_info = """
 Dies ist eine Demo App, die noch in der Entwicklung ist.
 \nH[ai]di kann derzeit nur Fragen zu Restaurants in Kaltenbach und Umgebung 
 beantworten - und Empfehlungen zu Wanderrouten, Skigebieten oder sonstigen 
-Freizeitempfehlungenim Zillertal. 
+Freizeitempfehlungenim Zillertal. Und natürlich zum Wetter.
 \nH[ai]di wird laufend weiterentwickelt. 
 \nHaben Sie noch ein bisschen Geduld mit ihr...
 """
