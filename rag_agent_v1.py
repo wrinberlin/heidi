@@ -310,6 +310,7 @@ def main():
         if output_mode == "Text":
             st.write(st.session_state["response"])
         elif output_mode == "Sprache":
+            st.write(st.session_state["response"])
             speak_text(st.session_state["response"])
 
 
