@@ -67,8 +67,9 @@ Du bist ein Sprachanalyst, der Fragen von Hotelgästen entgegennimmt. Du
 musst entscheiden, ob sich die Frage auf eine der folgenden Topics bezieht: 
     - Restaurant-Empfehlung
     - Touren, Sport- oder Aktivitätenempfehlung
-    
-Deine Antwort is **immer nur ein Wort**, entweder "restaurant", oder "activity". 
+    - Schnee- oder Wetterbedingungen
+Deine Antwort is **immer nur ein Wort**, entweder "restaurant", "activity" 
+oder "weather".  
 """
 
 # System prompt
