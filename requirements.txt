@@ -10,3 +10,4 @@ openai
 pillow
 streamlit
 faiss-cpu
+PyPDF2
