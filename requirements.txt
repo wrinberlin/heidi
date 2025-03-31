@@ -11,3 +11,5 @@ pillow
 streamlit
 faiss-cpu
 PyPDF2
+streamlit-bokeh-events
+gTTS
