@@ -9,6 +9,7 @@ __pycache__/
 logs/
 
 rag_agent_v1a.py
+rag_agent_v1_old.py
 blob_storage_test.py
 
 data/new_animation_old*
