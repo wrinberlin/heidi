@@ -19,11 +19,25 @@ import tiktoken
 import time
 from pathlib import Path
 
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-from langchain.chains import LLMChain
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+# from langchain_openai import ChatOpenAI
+# from langchain_core.prompts import (
+#     ChatPromptTemplate,
+#     SystemMessagePromptTemplate,
+#     HumanMessagePromptTemplate,
+# )
+# from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.vectorstores import FAISS
+
+
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores.faiss import FAISS
+
 
 # Import voice functions from voice_utils.py
 from voice_utils import record_and_transcribe, speak_text
@@ -189,25 +203,27 @@ def load_data(FAISS_STORAGE_PATH, knowledge_base_string):
     st.success("H[ai]di ist bereit!")
     
 def generate_dispatcher_response(user_question):
-    """Retrieves relevant context and generates an AI response."""
-    
-    
+    """Rewritten to use LCEL instead of LLMChain"""
     system_message = SystemMessagePromptTemplate.from_template(dispatcher_prompt)
     human_message = HumanMessagePromptTemplate.from_template("Frage: {question}")
     chat_prompt = ChatPromptTemplate.from_messages([system_message, human_message])
-    
+
     llm = ChatOpenAI(model="gpt-4", temperature=0.2, openai_api_key=OPENAI_API_KEY)
-    qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
-    return qa_chain.run( question=user_question)
+    
+    # LCEL chaining
+    chain = chat_prompt | llm
+    result = chain.invoke({"question": user_question})
+    return result.content
 
 def generate_response(user_question, system_prompt, knowledge_base_string):
-    """Retrieves relevant context and generates an AI response."""
+    """Rewritten to use LCEL instead of LLMChain"""
     knowledge_base = st.session_state.get(knowledge_base_string, None)
     if not knowledge_base:
         return "Kein PDF geladen. Bitte lade zuerst eine Datei hoch."
-    
+
     docs = knowledge_base.similarity_search(user_question)
     context, token_count = "", calculate_token_length(system_prompt + user_question, model_name="gpt-4")
+    
     for doc in docs:
         doc_tokens = calculate_token_length(doc.page_content, model_name="gpt-4")
         if token_count + doc_tokens + RESPONSE_BUFFER < MAX_TOKENS:
@@ -215,14 +231,18 @@ def generate_response(user_question, system_prompt, knowledge_base_string):
             token_count += doc_tokens
         else:
             break
-    
+
     system_message = SystemMessagePromptTemplate.from_template(system_prompt)
-    human_message = HumanMessagePromptTemplate.from_template("Kontext:\n{context}\n\nFrage: {question}")
+    human_message = HumanMessagePromptTemplate.from_template(
+        "Kontext:\n{context}\n\nFrage: {question}"
+    )
     chat_prompt = ChatPromptTemplate.from_messages([system_message, human_message])
-    
+
     llm = ChatOpenAI(model="gpt-4", temperature=0.0, openai_api_key=OPENAI_API_KEY)
-    qa_chain = LLMChain(llm=llm, prompt=chat_prompt)
-    return qa_chain.run(context=context.strip(), question=user_question)
+    
+    chain = chat_prompt | llm
+    result = chain.invoke({"context": context.strip(), "question": user_question})
+    return result.content
 
 
 def get_user_question(api_key):
