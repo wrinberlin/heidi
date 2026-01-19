@@ -1,7 +1,6 @@
 langchain==1.2.6
 langchain-community==0.4.1
 langchain-core==1.2.7
-langchain-experimental==0.0.65
 langchain-openai==1.1.7
 langchain-text-splitters==1.1.0
 langgraph==1.0.6

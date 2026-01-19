@@ -19,16 +19,6 @@ import tiktoken
 import time
 from pathlib import Path
 
-# from langchain_openai import ChatOpenAI
-# from langchain_core.prompts import (
-#     ChatPromptTemplate,
-#     SystemMessagePromptTemplate,
-#     HumanMessagePromptTemplate,
-# )
-# from langchain.embeddings.openai import OpenAIEmbeddings
-# from langchain.vectorstores import FAISS
-
-
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import (
     ChatPromptTemplate,
